@@ -76,7 +76,7 @@ const TOOLBOX_EDGE_TYPES = {
 
 const NODE_COLORS = [
   { label: 'Default',    value: '' },
-  { label: 'Red',        value: '#e53e3e' },
+  { label: 'Red',        value: '#dc2626' },
   { label: 'Orange',     value: '#dd6b20' },
   { label: 'Yellow',     value: '#d69e2e' },
   { label: 'Green',      value: '#38a169' },
@@ -141,8 +141,10 @@ let state = {
 let undoStack = [];
 let redoStack = [];
 const MAX_UNDO = 50;
+let isDirty = false;
 
 let selectedIds = new Set();
+let clipboard = { nodes: [], edges: [], pasteCount: 0 };
 let viewport = { x: 0, y: 0, scale: 1 };
 
 // Interaction state
@@ -155,6 +157,7 @@ function saveUndo() {
   undoStack.push(snapshot);
   if (undoStack.length > MAX_UNDO) undoStack.shift();
   redoStack = [];
+  isDirty = true;
   persistLocal();
 }
 
@@ -354,6 +357,14 @@ function renderAll() {
   renderEdges();
   renderNodes();
   applyViewport();
+  updateCanvasHint();
+}
+
+function updateCanvasHint() {
+  const hint = document.getElementById('canvas-hint');
+  if (!hint) return;
+  if (state.nodes.length === 0) hint.classList.remove('hidden');
+  else hint.classList.add('hidden');
 }
 
 function renderNodes() {
@@ -361,10 +372,18 @@ function renderNodes() {
   layer.innerHTML = '';
   // Render containers first so they appear behind other nodes
   for (const node of state.nodes) {
-    if (node.type === 'container') layer.appendChild(createNodeSVG(node));
+    if (node.type === 'container') {
+      const g = createNodeSVG(node);
+      if (aiNewNodeIds.has(node.id)) g.classList.add('ai-new-node');
+      layer.appendChild(g);
+    }
   }
   for (const node of state.nodes) {
-    if (node.type !== 'container') layer.appendChild(createNodeSVG(node));
+    if (node.type !== 'container') {
+      const g = createNodeSVG(node);
+      if (aiNewNodeIds.has(node.id)) g.classList.add('ai-new-node');
+      layer.appendChild(g);
+    }
   }
 }
 
@@ -383,14 +402,14 @@ function createNodeSVG(node) {
   g.setAttribute('data-id', node.id);
 
   const isSelected = selectedIds.has(node.id);
-  const strokeColor = isSelected ? '#4a90e2' : '#333';
+  const strokeColor = isSelected ? '#d97706' : '#1c1917';
   const strokeW = isSelected ? 2.5 : 1.5;
 
   switch (node.type) {
     case 'kind':
     case 'individual': {
       const r = node.r || DEFAULTS.kindRadius;
-      const borderColor = isSelected ? '#4a90e2' : '#333';
+      const borderColor = isSelected ? '#d97706' : '#1c1917';
       const fillColor = node.color ? node.color + '80' : 'white'; // 80 = 50% opacity in hex
       const circle = svgEl('circle', { cx: node.x, cy: node.y, r, fill: fillColor, stroke: borderColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' });
       g.appendChild(circle);
@@ -421,7 +440,7 @@ function createNodeSVG(node) {
       const w = node.w || DEFAULTS.relationW, h = node.h || DEFAULTS.relationH;
       const ax1 = node.x - w / 2, ax2 = node.x + w / 2, ay = node.y + 6;
       // Invisible hit-area rect
-      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? '#4a90e2' : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
       // Filled right-pointing triangle: base on left, tip at right connecting to line
       g.appendChild(svgEl('polygon', { points: `${ax1},${ay - 5} ${ax1 + 10},${ay} ${ax1},${ay + 5}`, fill: strokeColor }));
       // Arrow line starts from triangle tip
@@ -434,7 +453,7 @@ function createNodeSVG(node) {
       const w = node.w || DEFAULTS.relationAltW, h = node.h || DEFAULTS.relationAltH;
       const ax1 = node.x - w / 2, ax2 = node.x + w / 2, ay = node.y + 6;
       // Invisible hit-area rect
-      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? '#4a90e2' : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
       // Arrow line
       g.appendChild(svgEl('line', { x1: ax1, y1: ay, x2: ax2 - 8, y2: ay, stroke: strokeColor, 'stroke-width': 1.5 }));
       // Arrowhead at RIGHT (front) end — pointing right
@@ -483,7 +502,7 @@ function createNodeSVG(node) {
       const r = DEFAULTS.junctionR;
       g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
       const sym = node.type === 'junction-xor' ? 'X' : node.type === 'junction-or' ? 'O' : '&';
-      g.appendChild(svgText(node.x, node.y + 5, sym, { 'text-anchor': 'middle', 'font-size': 14, fill: '#333', 'font-weight': 'bold', 'font-family': 'Times New Roman, Times, serif' }));
+      g.appendChild(svgText(node.x, node.y + 5, sym, { 'text-anchor': 'middle', 'font-size': 14, fill: '#1c1917', 'font-weight': 'bold', 'font-family': 'Times New Roman, Times, serif' }));
       break;
     }
     case 'state-weak':
@@ -491,7 +510,7 @@ function createNodeSVG(node) {
       if (node.junction) {
         // Render as a small open circle (split junction marker, as in IDEF5 Fig. 4-37)
         const r = 5;
-        g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r: r + 8, fill: 'transparent', class: 'node-shape shape-outline', stroke: isSelected ? '#4a90e2' : 'none', 'stroke-width': 1 }));
+        g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r: r + 8, fill: 'transparent', class: 'node-shape shape-outline', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1 }));
         if (node.instantaneous) g.appendChild(instantaneousCircle(node.x, node.y, strokeColor));
         else g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
         break;
@@ -500,7 +519,7 @@ function createNodeSVG(node) {
       // Draw as an arrow element on canvas (not a connector, but a standalone node-symbol)
       const arrowY = node.y;
       const x1 = node.x - w/2, x2 = node.x + w/2;
-      const hitRect = svgEl('rect', { x: x1 - 2, y: arrowY - 15, width: w + 4, height: 30, fill: 'transparent', stroke: isSelected ? '#4a90e2' : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' });
+      const hitRect = svgEl('rect', { x: x1 - 2, y: arrowY - 15, width: w + 4, height: 30, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' });
       g.appendChild(hitRect);
       g.appendChild(svgEl('line', { x1, y1: arrowY, x2: x2 - (node.type === 'state-strong' ? 8 : 0), y2: arrowY, stroke: strokeColor, 'stroke-width': 2 }));
       // arrowhead(s) at right end
@@ -521,7 +540,7 @@ function createNodeSVG(node) {
       const s = DEFAULTS.transitionSize;
       const pts = `${node.x},${node.y - s/2} ${node.x + s/2},${node.y + s/2} ${node.x - s/2},${node.y + s/2}`;
       g.appendChild(svgEl('polygon', { points: pts, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
-      g.appendChild(svgText(node.x, node.y + 6, 'Δ', { 'text-anchor': 'middle', 'font-size': 16, fill: '#333' }));
+      g.appendChild(svgText(node.x, node.y + 6, 'Δ', { 'text-anchor': 'middle', 'font-size': 16, fill: '#1c1917' }));
       if (node.label) g.appendChild(svgText(node.x, node.y + s/2 + 14, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: '#444' }));
       break;
     }
@@ -532,7 +551,7 @@ function createNodeSVG(node) {
       const ay = node.y;
       const x1 = node.x - w/2, x2 = node.x + w/2;
       // Hit area (invisible, selection border only)
-      g.appendChild(svgEl('rect', { x: x1 - 2, y: ay - 10, width: w + 4, height: 20, fill: 'transparent', stroke: isSelected ? '#4a90e2' : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: x1 - 2, y: ay - 10, width: w + 4, height: 20, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' }));
       // Solid line spanning full width
       g.appendChild(svgEl('line', { x1, y1: ay, x2, y2: ay, stroke: strokeColor, 'stroke-width': 1.5 }));
       // Open chevron at center
@@ -555,7 +574,7 @@ function createNodeSVG(node) {
       // Header background + label
       g.appendChild(svgEl('rect', { x: bx, y: by, width: kw, height: DEFAULTS.keyHeaderH, fill: '#f4f4f4', stroke: 'none' }));
       g.appendChild(svgEl('line', { x1: bx, y1: by + DEFAULTS.keyHeaderH, x2: bx + kw, y2: by + DEFAULTS.keyHeaderH, stroke: strokeColor, 'stroke-width': 1 }));
-      g.appendChild(svgText(bx + kw/2, by + DEFAULTS.keyHeaderH * 0.65, node.label || 'Key', { 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#333' }));
+      g.appendChild(svgText(bx + kw/2, by + DEFAULTS.keyHeaderH * 0.65, node.label || 'Key', { 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#1c1917' }));
       // Entries
       entries.forEach((entry, i) => {
         const rowY = by + DEFAULTS.keyHeaderH + DEFAULTS.keyPad + i * DEFAULTS.keyEntryH;
@@ -608,7 +627,7 @@ function createNodeSVG(node) {
             g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: color }));
         }
         // Label
-        g.appendChild(svgText(bx + symW + pad, my + 4, entry.label || '', { 'text-anchor': 'start', 'font-size': 10, fill: '#333' }));
+        g.appendChild(svgText(bx + symW + pad, my + 4, entry.label || '', { 'text-anchor': 'start', 'font-size': 10, fill: '#1c1917' }));
         // Separator line (except last)
         if (i < entries.length - 1) {
           g.appendChild(svgEl('line', { x1: bx + pad, y1: rowY + DEFAULTS.keyEntryH, x2: bx + kw - pad, y2: rowY + DEFAULTS.keyEntryH, stroke: '#ddd', 'stroke-width': 0.5 }));
@@ -630,7 +649,7 @@ function createNodeSVG(node) {
           [mx, by], [mx, by + h], [bx, my], [bx + w, my],           // edges
         ];
         for (const [hx, hy] of handles) {
-          g.appendChild(svgEl('rect', { x: hx - hs, y: hy - hs, width: hs * 2, height: hs * 2, fill: 'white', stroke: '#4a90e2', 'stroke-width': 1.5 }));
+          g.appendChild(svgEl('rect', { x: hx - hs, y: hy - hs, width: hs * 2, height: hs * 2, fill: 'white', stroke: '#d97706', 'stroke-width': 1.5 }));
         }
       }
       break;
@@ -660,7 +679,7 @@ function createEdgeSVG(edge) {
   g.setAttribute('class', 'edge-group');
   g.setAttribute('data-id', edge.id);
 
-  const strokeColor = isSelected ? '#4a90e2' : '#555';
+  const strokeColor = isSelected ? '#d97706' : '#555';
   const arrowMarker = isSelected ? 'url(#arrowhead-blue)' : 'url(#arrowhead)';
 
   switch (edge.type) {
@@ -672,7 +691,7 @@ function createEdgeSVG(edge) {
       const lbl = edge.label || 'R';
       const lw = Math.max(50, lbl.length * 8 + 16);
       g.appendChild(svgEl('rect', { x: midX - lw/2, y: midY - 11, width: lw, height: 22, rx: 11, fill: 'white', stroke: strokeColor, 'stroke-width': 1 }));
-      g.appendChild(svgText(midX, midY + 4, lbl, { 'text-anchor': 'middle', 'font-size': 11, fill: '#333' }));
+      g.appendChild(svgText(midX, midY + 4, lbl, { 'text-anchor': 'middle', 'font-size': 11, fill: '#1c1917' }));
       break;
     }
     case 'second-order': {
@@ -921,6 +940,65 @@ function deleteSelected() {
   updateProperties();
 }
 
+function copySelected() {
+  if (selectedIds.size === 0) return;
+  clipboard.nodes = [];
+  clipboard.edges = [];
+  clipboard.pasteCount = 0;
+  for (const id of selectedIds) {
+    const node = state.nodes.find(n => n.id === id);
+    if (node) clipboard.nodes.push(JSON.parse(JSON.stringify(node)));
+  }
+  for (const edge of state.edges) {
+    if (selectedIds.has(edge.fromId) && selectedIds.has(edge.toId)) {
+      clipboard.edges.push(JSON.parse(JSON.stringify(edge)));
+    }
+  }
+}
+
+function cutSelected() {
+  if (selectedIds.size === 0) return;
+  copySelected();
+  deleteSelected();
+}
+
+function pasteClipboard() {
+  if (clipboard.nodes.length === 0) return;
+  saveUndo();
+  const idMap = {};
+  const newIds = new Set();
+  for (const node of clipboard.nodes) {
+    const newNode = JSON.parse(JSON.stringify(node));
+    const oldId = newNode.id;
+    newNode.id = 'n' + nextId();
+    newNode.x += 20;
+    newNode.y += 20;
+    idMap[oldId] = newNode.id;
+    state.nodes.push(newNode);
+    newIds.add(newNode.id);
+  }
+  for (const edge of clipboard.edges) {
+    const newEdge = JSON.parse(JSON.stringify(edge));
+    newEdge.id = 'e' + nextId();
+    newEdge.fromId = idMap[edge.fromId];
+    newEdge.toId = idMap[edge.toId];
+    if (newEdge.fromId && newEdge.toId) state.edges.push(newEdge);
+  }
+  // Update clipboard positions so repeated pastes cascade; reset after 5 pastes
+  clipboard.pasteCount = (clipboard.pasteCount || 0) + 1;
+  if (clipboard.pasteCount <= 5) {
+    clipboard.nodes.forEach(n => { n.x += 20; n.y += 20; });
+  } else {
+    clipboard.pasteCount = 1;
+    clipboard.nodes.forEach(n => { n.x -= 80; n.y -= 80; }); // reset toward origin
+  }
+  selectedIds.clear();
+  newIds.forEach(id => selectedIds.add(id));
+  renderAll();
+  updateProperties();
+  persistLocal();
+}
+
 function duplicateSelected() {
   if (selectedIds.size === 0) return;
   saveUndo();
@@ -1004,7 +1082,7 @@ function renderNodeProps(panel, node) {
   if (node.type === 'kind' || node.type === 'individual') {
     const dc = document.createElement('div');
     dc.className = 'prop-group';
-    dc.innerHTML = '<label class="prop-label">Border Color</label>';
+    dc.innerHTML = '<label class="prop-label">Color</label>';
     const grid = document.createElement('div');
     grid.className = 'color-picker';
     NODE_COLORS.forEach(c => {
@@ -1177,7 +1255,7 @@ function startInlineEdit(nodeId) {
   const inp = document.createElement('textarea');
   inp.value = node.label || '';
   inp.style.cssText = [
-    'width:100%', 'height:100%', 'border:1.5px solid #4a90e2', 'border-radius:3px',
+    'width:100%', 'height:100%', 'border:1.5px solid #d97706', 'border-radius:3px',
     'text-align:center', 'font-size:12px', 'background:white', 'padding:3px 4px',
     'box-sizing:border-box', 'resize:none', 'overflow:hidden', 'line-height:1.35',
     'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
@@ -1227,10 +1305,16 @@ document.querySelectorAll('.toolbox-item').forEach(item => {
   const edgeType = TOOLBOX_EDGE_TYPES[item.dataset.type];
   if (edgeType) {
     item.addEventListener('click', () => {
-      cancelToolboxConnect();                     // clear any prior mode
-      toolboxConnectStart = { edgeType, fromId: null };
+      cancelToolboxConnect();
+      // If a single Kind/Individual is already selected, use it as the source
+      let fromId = null;
+      if (selectedIds.size === 1) {
+        const sel = state.nodes.find(n => n.id === [...selectedIds][0]);
+        if (sel && (sel.type === 'kind' || sel.type === 'individual')) fromId = sel.id;
+      }
+      toolboxConnectStart = { edgeType, fromId };
       canvasContainer.style.cursor = 'crosshair';
-      showToolboxConnectHint(true);               // "Click the source node"
+      showToolboxConnectHint(!fromId);
     });
   }
 });
@@ -1597,7 +1681,7 @@ function onCanvasPointerMove(e) {
   if (dragState.type === 'node') {
     const wp = clientToWorld(e.clientX, e.clientY);
     for (const [id, off] of Object.entries(dragState.nodeOffsets)) {
-      const node = state.nodes.find(n => n.id === id);
+      const node = state.nodes.find(n => String(n.id) === id);
       if (node) { node.x = snap(wp.x - off.dx); node.y = snap(wp.y - off.dy); }
     }
     dragState.moved = true;
@@ -1689,6 +1773,9 @@ function showContextMenu(x, y) {
   menu.style.left = x + 'px';
   menu.style.top = y + 'px';
   menu.style.display = 'block';
+  // Focus the first actionable item for keyboard nav
+  const first = menu.querySelector('.ctx-item:not(.ctx-sep)');
+  if (first) { first.setAttribute('tabindex', '0'); first.focus(); }
 }
 
 function hideContextMenu() {
@@ -1703,6 +1790,30 @@ document.getElementById('context-menu').addEventListener('click', e => {
   if (action === 'duplicate') duplicateSelected();
   if (action === 'front') bringToFront();
   if (action === 'back') sendToBack();
+});
+
+// Context menu keyboard navigation
+document.getElementById('context-menu').addEventListener('keydown', e => {
+  const menu = document.getElementById('context-menu');
+  const items = Array.from(menu.querySelectorAll('.ctx-item[data-action]'));
+  const focused = document.activeElement;
+  const idx = items.indexOf(focused);
+  if (e.key === 'Escape') { hideContextMenu(); e.preventDefault(); return; }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const next = items[(idx + 1) % items.length];
+    items.forEach(i => i.setAttribute('tabindex', '-1'));
+    next.setAttribute('tabindex', '0');
+    next.focus();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const prev = items[(idx - 1 + items.length) % items.length];
+    items.forEach(i => i.setAttribute('tabindex', '-1'));
+    prev.setAttribute('tabindex', '0');
+    prev.focus();
+  } else if (e.key === 'Enter' && focused && focused.dataset.action) {
+    focused.click();
+  }
 });
 
 function bringToFront() {
@@ -1742,12 +1853,16 @@ document.addEventListener('keydown', e => {
   const tag = document.activeElement && document.activeElement.tagName.toLowerCase();
   const isTyping = tag === 'input' || tag === 'textarea' || !!editingNodeId;
   if (isTyping) return;
-  if (e.key === 'Escape') { cancelToolboxConnect(); }
+  if (e.key === 'Escape') { cancelToolboxConnect(); hideContextMenu(); }
   if (e.key === ' ') { spaceDown = true; canvasContainer.style.cursor = toolboxConnectStart ? 'crosshair' : 'grab'; e.preventDefault(); }
   if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
-  if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
-  if (e.ctrlKey && (e.key === 'y' || e.key === 'Z')) { e.preventDefault(); redo(); }
-  if (e.ctrlKey && e.key === 'd') { e.preventDefault(); duplicateSelected(); }
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key === 'z') { e.preventDefault(); undo(); }
+  if (mod && (e.key === 'y' || e.key === 'Z')) { e.preventDefault(); redo(); }
+  if (mod && e.key === 'd') { e.preventDefault(); duplicateSelected(); }
+  if (mod && e.key === 'c') { e.preventDefault(); copySelected(); }
+  if (mod && e.key === 'x') { e.preventDefault(); cutSelected(); }
+  if (mod && e.key === 'v') { e.preventDefault(); pasteClipboard(); }
 });
 document.addEventListener('keyup', e => {
   if (e.key === ' ') { spaceDown = false; canvasContainer.style.cursor = 'default'; }
@@ -1756,6 +1871,40 @@ document.addEventListener('keyup', e => {
 // ============================================================
 // TOOLBAR ACTIONS
 // ============================================================
+
+// ===== FILE DROPDOWN =====
+document.getElementById('btn-file').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('file-menu');
+  const wasOpen = menu.classList.contains('open');
+  closeAllDropdowns();
+  if (!wasOpen) menu.classList.add('open');
+});
+
+// ===== EDIT DROPDOWN =====
+document.getElementById('btn-edit').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('edit-menu');
+  const wasOpen = menu.classList.contains('open');
+  closeAllDropdowns();
+  if (!wasOpen) menu.classList.add('open');
+});
+document.getElementById('edit-menu').addEventListener('click', e => {
+  const item = e.target.closest('.tb-dropdown-item');
+  if (!item) return;
+  document.getElementById('edit-menu').classList.remove('open');
+});
+document.getElementById('btn-cut').addEventListener('click', cutSelected);
+document.getElementById('btn-copy').addEventListener('click', copySelected);
+document.getElementById('btn-paste').addEventListener('click', pasteClipboard);
+document.getElementById('btn-delete').addEventListener('click', deleteSelected);
+
+function closeAllDropdowns() {
+  document.getElementById('file-menu').classList.remove('open');
+  document.getElementById('edit-menu').classList.remove('open');
+  document.getElementById('help-menu').classList.remove('open');
+}
+
 document.getElementById('btn-new').addEventListener('click', () => {
   if (state.nodes.length > 0 || state.edges.length > 0) {
     if (!confirm('Clear the current diagram?')) return;
@@ -1766,9 +1915,18 @@ document.getElementById('btn-new').addEventListener('click', () => {
   state.nextId = 1;
   selectedIds.clear();
   viewport = { x: 0, y: 0, scale: 1 };
+  // Reset AI state for new diagram
+  isFirstAIGeneration = true;
+  aiConversationHistory = [];
+  aiNewNodeIds = new Set();
+  setAILoading(false);   // restore UI if a request was in-flight
+  aiGenerationId++;      // discard any in-flight response (checked in finally)
+  const aiThread = document.getElementById('ai-messages');
+  if (aiThread) aiThread.innerHTML = '';
   renderAll();
   updateProperties();
   persistLocal();
+  isDirty = false;  // new diagram is clean
 });
 
 document.getElementById('btn-undo').addEventListener('click', undo);
@@ -1814,6 +1972,7 @@ document.getElementById('btn-save').addEventListener('click', () => {
   a.download = 'idef5-diagram.json';
   a.click();
   URL.revokeObjectURL(url);
+  isDirty = false;
 });
 
 document.getElementById('btn-load').addEventListener('click', () => {
@@ -1822,7 +1981,11 @@ document.getElementById('btn-load').addEventListener('click', () => {
 
 document.getElementById('file-input').addEventListener('change', e => {
   const file = e.target.files[0];
-  if (!file) return;
+  if (!file) { e.target.value = ''; return; }
+  if ((state.nodes.length > 0 || state.edges.length > 0) && !confirm('Load "' + file.name + '"?\nThis will replace the current diagram.')) {
+    e.target.value = '';
+    return;
+  }
   const reader = new FileReader();
   reader.onload = ev => {
     try {
@@ -1832,6 +1995,7 @@ document.getElementById('file-input').addEventListener('change', e => {
       state.edges = data.edges || [];
       state.nextId = data.nextId || 1;
       selectedIds.clear();
+      isDirty = false;
       renderAll();
       updateProperties();
       fitToWindow();
@@ -1852,15 +2016,15 @@ const EXAMPLES = {
       { id: 2, type: 'kind', x: 120, y: 220, label: 'Lower Body' },
       { id: 3, type: 'kind', x: 300, y: 220, label: 'Cartridge' },
       { id: 4, type: 'kind', x: 480, y: 220, label: 'Upper Body' },
-      { id: 5, type: 'kind', x: 180, y: 360, label: 'Spring' },
-      { id: 6, type: 'kind', x: 360, y: 360, label: 'Ink Supply' },
-      { id: 7, type: 'kind', x: 540, y: 360, label: 'Ball Tip' },
+      { id: 5, type: 'kind', x: 60,  y: 360, label: 'Spring' },
+      { id: 6, type: 'kind', x: 300, y: 360, label: 'Ink Supply' },
+      { id: 7, type: 'kind', x: 480, y: 360, label: 'Ball Tip' },
     ],
     edges: [
       { id: 101, type: 'part-of', fromId: 2, toId: 1, label: '' },
       { id: 102, type: 'part-of', fromId: 3, toId: 1, label: '' },
       { id: 103, type: 'part-of', fromId: 4, toId: 1, label: '' },
-      { id: 104, type: 'part-of', fromId: 5, toId: 3, label: '' },
+      { id: 104, type: 'part-of', fromId: 5, toId: 2, label: '' },
       { id: 105, type: 'part-of', fromId: 6, toId: 3, label: '' },
       { id: 106, type: 'part-of', fromId: 7, toId: 3, label: '' },
     ],
@@ -1869,58 +2033,89 @@ const EXAMPLES = {
   'water-transitions': {
     label: 'Water Phase Transitions',
     nodes: [
-      { id: 1, type: 'kind',          x: 120, y: 200, label: 'Water: Liquid' },
-      { id: 2, type: 'kind',          x: 480, y: 200, label: 'Water: Gaseous' },
-      { id: 3, type: 'state-strong',  x: 300, y: 200, label: '', junction: true },
-      { id: 4, type: 'process',       x: 300, y: 80,  label: 'Vaporize Water' },
+      { id: 1, type: 'kind',       x: 80,  y: 230, label: 'Ice' },
+      { id: 2, type: 'kind',       x: 360, y: 230, label: 'Liquid Water' },
+      { id: 3, type: 'kind',       x: 640, y: 230, label: 'Steam' },
+      { id: 4, type: 'state-weak', x: 220, y: 230, label: '', junction: true },
+      { id: 5, type: 'state-weak', x: 500, y: 230, label: '', junction: true },
+      { id: 6, type: 'process',    x: 220, y: 80,  label: 'Melt Ice' },
+      { id: 7, type: 'process',    x: 500, y: 80,  label: 'Boil Water' },
     ],
     edges: [
-      { id: 101, type: 'connect-plain', fromId: 1, toId: 3, label: '' },
-      { id: 102, type: 'state-strong',  fromId: 3, toId: 2, label: '' },
-      { id: 103, type: 'connect-plain', fromId: 4, toId: 3, label: '' },
-      { id: 104, type: 'connect-plain', fromId: 5, toId: 6, label: '' },
-      { id: 105, type: 'state-weak',    fromId: 6, toId: 2, label: '' },
+      { id: 101, type: 'connect-plain', fromId: 1, toId: 4, label: '' },
+      { id: 102, type: 'state-weak',    fromId: 4, toId: 2, label: '' },
+      { id: 103, type: 'connect-plain', fromId: 6, toId: 4, label: '' },
+      { id: 104, type: 'connect-plain', fromId: 2, toId: 5, label: '' },
+      { id: 105, type: 'state-weak',    fromId: 5, toId: 3, label: '' },
+      { id: 106, type: 'connect-plain', fromId: 7, toId: 5, label: '' },
     ],
     nextId: 200,
   },
   'vehicle-classification': {
     label: 'Vehicle Classification',
     nodes: [
-      { id: 1, type: 'kind', x: 300, y: 60,  label: 'Vehicle' },
-      { id: 2, type: 'kind', x: 160, y: 180, label: 'Land Vehicle' },
-      { id: 3, type: 'kind', x: 440, y: 180, label: 'Water Vehicle' },
-      { id: 4, type: 'kind', x: 80,  y: 320, label: 'Car' },
-      { id: 5, type: 'kind', x: 240, y: 320, label: 'Truck' },
-      { id: 6, type: 'kind', x: 380, y: 320, label: 'Boat' },
-      { id: 7, type: 'kind', x: 520, y: 320, label: 'Ship' },
-      { id: 8, type: 'kind', x: 160, y: 460, label: 'Bicycle' },
-      { id: 9, type: 'kind', x: 300, y: 460, label: 'Motorcycle' },
+      { id: 1, type: 'kind', x: 480, y: 60,  label: 'Vehicle' },
+      { id: 2, type: 'kind', x: 270, y: 200, label: 'Land Vehicle' },
+      { id: 3, type: 'kind', x: 690, y: 200, label: 'Water Vehicle' },
+      { id: 4, type: 'kind', x: 60,  y: 360, label: 'Car' },
+      { id: 5, type: 'kind', x: 200, y: 360, label: 'Truck' },
+      { id: 6, type: 'kind', x: 340, y: 360, label: 'Bicycle' },
+      { id: 7, type: 'kind', x: 480, y: 360, label: 'Motorcycle' },
+      { id: 8, type: 'kind', x: 620, y: 360, label: 'Boat' },
+      { id: 9, type: 'kind', x: 760, y: 360, label: 'Ship' },
     ],
     edges: [
       { id: 101, type: 'subkind-of', fromId: 2, toId: 1, label: '' },
       { id: 102, type: 'subkind-of', fromId: 3, toId: 1, label: '' },
       { id: 103, type: 'subkind-of', fromId: 4, toId: 2, label: '' },
       { id: 104, type: 'subkind-of', fromId: 5, toId: 2, label: '' },
-      { id: 105, type: 'subkind-of', fromId: 6, toId: 3, label: '' },
-      { id: 106, type: 'subkind-of', fromId: 7, toId: 3, label: '' },
-      { id: 107, type: 'subkind-of', fromId: 8, toId: 2, label: '' },
-      { id: 108, type: 'subkind-of', fromId: 9, toId: 2, label: '' },
+      { id: 105, type: 'subkind-of', fromId: 6, toId: 2, label: '' },
+      { id: 106, type: 'subkind-of', fromId: 7, toId: 2, label: '' },
+      { id: 107, type: 'subkind-of', fromId: 8, toId: 3, label: '' },
+      { id: 108, type: 'subkind-of', fromId: 9, toId: 3, label: '' },
+    ],
+    nextId: 200,
+  },
+  'agent-ontology': {
+    label: 'Agent Classification',
+    nodes: [
+      { id: 1,  type: 'kind',       x: 300, y: 180, label: 'Agent' },
+      { id: 2,  type: 'kind',       x: 580, y: 60,  label: 'Environment' },
+      { id: 3,  type: 'kind',       x: 580, y: 180, label: 'Perception' },
+      { id: 4,  type: 'kind',       x: 580, y: 340, label: 'Action' },
+      { id: 5,  type: 'kind',       x: 120, y: 340, label: 'Autonomous Agent' },
+      { id: 6,  type: 'kind',       x: 460, y: 340, label: 'Reactive Agent' },
+      { id: 7,  type: 'kind',       x: 60,  y: 500, label: 'Software Agent' },
+      { id: 8,  type: 'kind',       x: 240, y: 500, label: 'Human Agent' },
+      { id: 9,  type: 'kind',       x: 60,  y: 660, label: 'AI Agent' },
+      { id: 10, type: 'individual', x: 240, y: 660, label: 'Ada Lovelace' },
+    ],
+    edges: [
+      { id: 101, type: 'subkind-of',  fromId: 5,  toId: 1,  label: '' },
+      { id: 102, type: 'subkind-of',  fromId: 6,  toId: 1,  label: '' },
+      { id: 103, type: 'subkind-of',  fromId: 7,  toId: 5,  label: '' },
+      { id: 104, type: 'subkind-of',  fromId: 8,  toId: 5,  label: '' },
+      { id: 105, type: 'subkind-of',  fromId: 9,  toId: 7,  label: '' },
+      { id: 106, type: 'part-of',     fromId: 3,  toId: 1,  label: '' },
+      { id: 107, type: 'part-of',     fromId: 4,  toId: 1,  label: '' },
+      { id: 108, type: 'relation-alt', fromId: 1,  toId: 2,  label: 'operates in' },
+      { id: 109, type: 'instance-of', fromId: 10, toId: 8,  label: '' },
     ],
     nextId: 200,
   },
   'fastener-classification': {
     label: 'Fastener Classification',
     nodes: [
-      { id: 1,  type: 'kind', x: 300, y: 60,  label: 'Fastener' },
-      { id: 2,  type: 'kind', x: 160, y: 190, label: 'Threaded Fastener' },
-      { id: 3,  type: 'kind', x: 440, y: 190, label: 'Non-Threaded Fastener' },
-      { id: 4,  type: 'kind', x: 80,  y: 330, label: 'Bolt' },
-      { id: 5,  type: 'kind', x: 200, y: 330, label: 'Screw' },
-      { id: 6,  type: 'kind', x: 320, y: 330, label: 'Nail' },
-      { id: 7,  type: 'kind', x: 440, y: 330, label: 'Rivet' },
-      { id: 8,  type: 'kind', x: 560, y: 330, label: 'Staple' },
-      { id: 9,  type: 'kind', x: 80,  y: 460, label: 'Hex Bolt' },
-      { id: 10, type: 'kind', x: 200, y: 460, label: 'Carriage Bolt' },
+      { id: 1,  type: 'kind', x: 380, y: 60,  label: 'Fastener' },
+      { id: 2,  type: 'kind', x: 160, y: 200, label: 'Threaded Fastener' },
+      { id: 3,  type: 'kind', x: 560, y: 200, label: 'Non-Threaded Fastener' },
+      { id: 4,  type: 'kind', x: 80,  y: 340, label: 'Bolt' },
+      { id: 5,  type: 'kind', x: 220, y: 340, label: 'Screw' },
+      { id: 6,  type: 'kind', x: 440, y: 340, label: 'Nail' },
+      { id: 7,  type: 'kind', x: 580, y: 340, label: 'Rivet' },
+      { id: 8,  type: 'kind', x: 720, y: 340, label: 'Staple' },
+      { id: 9,  type: 'kind', x: 60,  y: 480, label: 'Hex Bolt' },
+      { id: 10, type: 'kind', x: 200, y: 480, label: 'Carriage Bolt' },
     ],
     edges: [
       { id: 101, type: 'subkind-of', fromId: 2,  toId: 1, label: '' },
@@ -1932,6 +2127,29 @@ const EXAMPLES = {
       { id: 107, type: 'subkind-of', fromId: 8,  toId: 3, label: '' },
       { id: 108, type: 'subkind-of', fromId: 9,  toId: 4, label: '' },
       { id: 109, type: 'subkind-of', fromId: 10, toId: 4, label: '' },
+    ],
+    nextId: 200,
+  },
+  'library-system': {
+    label: 'Library System',
+    nodes: [
+      { id: 1, type: 'kind',           x: 120, y: 120, label: 'Library' },
+      { id: 2, type: 'kind',           x: 120, y: 300, label: 'Member' },
+      { id: 3, type: 'kind',           x: 560, y: 120, label: 'Book' },
+      { id: 4, type: 'relation-first', x: 340, y: 120, label: 'holds' },
+      { id: 5, type: 'relation-first', x: 340, y: 300, label: 'borrows' },
+      { id: 6, type: 'kind',           x: 460, y: 300, label: 'Fiction' },
+      { id: 7, type: 'kind',           x: 660, y: 300, label: 'Non-Fiction' },
+      { id: 8, type: 'individual',     x: 120, y: 460, label: 'Alice' },
+    ],
+    edges: [
+      { id: 101, type: 'first-order', fromId: 4, toId: 1, label: '' },
+      { id: 102, type: 'first-order', fromId: 4, toId: 3, label: '' },
+      { id: 103, type: 'first-order', fromId: 5, toId: 2, label: '' },
+      { id: 104, type: 'first-order', fromId: 5, toId: 3, label: '' },
+      { id: 105, type: 'subkind-of',  fromId: 6, toId: 3, label: '' },
+      { id: 106, type: 'subkind-of',  fromId: 7, toId: 3, label: '' },
+      { id: 107, type: 'instance-of', fromId: 8, toId: 2, label: '' },
     ],
     nextId: 200,
   },
@@ -1953,20 +2171,23 @@ function loadExample(key) {
   fitToWindow();
 }
 
-document.getElementById('btn-examples').addEventListener('click', e => {
+document.getElementById('btn-help-menu').addEventListener('click', e => {
   e.stopPropagation();
-  document.getElementById('examples-menu').classList.toggle('open');
+  const menu = document.getElementById('help-menu');
+  const wasOpen = menu.classList.contains('open');
+  closeAllDropdowns();
+  if (!wasOpen) menu.classList.add('open');
 });
 
 document.getElementById('examples-menu').addEventListener('click', e => {
-  const item = e.target.closest('.tb-dropdown-item');
+  const item = e.target.closest('[data-example]');
   if (!item) return;
-  document.getElementById('examples-menu').classList.remove('open');
+  closeAllDropdowns();
   loadExample(item.dataset.example);
 });
 
 document.addEventListener('click', () => {
-  document.getElementById('examples-menu').classList.remove('open');
+  closeAllDropdowns();
 });
 
 function exportSVG() {
@@ -2018,6 +2239,466 @@ function exportSVG() {
   a.download = 'idef5-diagram.svg';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// AI PANEL
+// ============================================================
+
+const AI_MODEL       = 'claude-sonnet-4-6';
+const AI_ENDPOINT    = 'https://api.anthropic.com/v1/messages';
+const AI_MAX_TOKENS  = 4096;
+const AI_TIMEOUT_MS  = 45000;
+const AI_HISTORY_MAX = 20;  // messages (10 turns)
+const AI_SYSTEM_PROMPT = `You are a knowledge engineering assistant for Quiddity, a browser-based IDEF5 ontology editor.
+
+IDEF5 symbol types you may use:
+  Nodes: kind, individual, relation-first, relation-second, relation-alt, process,
+         referent, junction-xor, junction-or, junction-and, state-weak, state-strong,
+         transition-instant, connect-fwd, connect-bwd, connect-plain, container, key
+  Edges: subkind-of, instance-of, part-of, first-order, second-order,
+         state-weak, state-strong, connect-plain, connect-fwd, connect-bwd, relation-alt
+
+Respond ONLY with valid JSON — no prose, no markdown fences, just raw JSON:
+{
+  "description": "one-sentence summary of what was modeled",
+  "nodes": [
+    { "id": "n1", "type": "kind", "label": "Patient" }
+  ],
+  "edges": [
+    { "id": "e1", "from": "n1", "to": "n2", "type": "subkind-of", "label": "" }
+  ]
+}
+
+Rules:
+- Node IDs: use short identifiers like "n1", "n2" — the client remaps these to globally unique IDs.
+- Use "kind" for categories, "individual" for specific named instances.
+- Ensure all node labels are unique within each response.
+- Do not include x, y, w, h, color — the client handles layout.
+- Generate no more than 20 nodes per response.
+- For extensions: you will receive existing node and edge context. Reference existing node IDs
+  in edge from/to fields to connect new nodes to existing ones.`;
+
+// AI state variables
+let aiConversationHistory = [];
+let aiPanelOpen = false;
+let isFirstAIGeneration = true;
+let aiNewNodeIds = new Set();
+let aiGenerationId = 0;
+
+// ---- utility: mask an API key for display ----
+function maskApiKey(key) {
+  if (!key || key.length < 10) return key;
+  return key.slice(0, 7) + '\u2022'.repeat(8);
+}
+
+// ---- show/hide panel ----
+function openAIPanel() {
+  aiPanelOpen = true;
+  document.getElementById('ai-panel').classList.add('open');
+  document.getElementById('btn-ai').classList.add('ai-active');
+  syncAIKeySection();
+  syncAITextareaPlaceholder();
+  if (document.getElementById('ai-messages').children.length === 0) {
+    appendAIMessage('ai', 'Describe a domain and I\'ll build an IDEF5 knowledge graph on the canvas. Try: <em>Model how a hospital manages patients.</em>');
+  }
+}
+
+function closeAIPanel() {
+  aiPanelOpen = false;
+  document.getElementById('ai-panel').classList.remove('open');
+  document.getElementById('btn-ai').classList.remove('ai-active');
+}
+
+function syncAIKeySection() {
+  const key = localStorage.getItem('quiddity-ai-key') || '';
+  const inputRow  = document.getElementById('ai-key-input-row');
+  const storedRow = document.getElementById('ai-key-stored-row');
+  const maskEl    = document.getElementById('ai-key-mask');
+  if (key) {
+    inputRow.style.display  = 'none';
+    storedRow.style.display = 'flex';
+    maskEl.textContent = '\uD83D\uDD13 ' + maskApiKey(key);
+  } else {
+    inputRow.style.display  = '';
+    storedRow.style.display = 'none';
+  }
+}
+
+function syncAITextareaPlaceholder() {
+  const key = localStorage.getItem('quiddity-ai-key') || '';
+  const ta = document.getElementById('ai-textarea');
+  ta.placeholder = key
+    ? 'Add concepts, refine, or ask questions\u2026'
+    : 'Paste your Anthropic API key above to get started.';
+}
+
+// ---- append a message bubble to the thread ----
+function appendAIMessage(role, html, chip) {
+  const thread = document.getElementById('ai-messages');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + role;
+  const roleLabel = document.createElement('div');
+  roleLabel.className = 'ai-msg-role';
+  roleLabel.textContent = role === 'user' ? 'You' : 'AI';
+  const body = document.createElement('div');
+  body.className = 'ai-msg-body';
+  body.innerHTML = html;
+  div.appendChild(roleLabel);
+  div.appendChild(body);
+  if (chip) {
+    const chipEl = document.createElement('div');
+    chipEl.className = 'ai-confirm-chip';
+    chipEl.textContent = chip;
+    div.appendChild(chipEl);
+  }
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+  return body;
+}
+
+// ---- set in-flight UI state ----
+function setAILoading(loading) {
+  const btn = document.getElementById('ai-send-btn');
+  const ta  = document.getElementById('ai-textarea');
+  if (loading) {
+    btn.innerHTML = '<span class="ai-spinner"></span>';
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    btn.setAttribute('aria-disabled', 'true');
+    ta.disabled = true;
+    document.getElementById('ai-canvas-spinner').style.display = 'flex';
+  } else {
+    btn.innerHTML = 'Send';
+    btn.disabled = false;
+    btn.removeAttribute('aria-busy');
+    btn.removeAttribute('aria-disabled');
+    ta.disabled = false;
+    document.getElementById('ai-canvas-spinner').style.display = 'none';
+  }
+}
+
+// ---- callClaudeAPI ----
+async function callClaudeAPI(userMessage) {
+  const key = localStorage.getItem('quiddity-ai-key') || '';
+  if (!key) {
+    appendAIMessage('ai', '<span class="ai-error">Enter your Anthropic API key above to get started.</span>');
+    return;
+  }
+
+  const myId = ++aiGenerationId;
+
+  // Build context message (not stored in history)
+  const contextMessage = {
+    role: 'user',
+    content: `Current graph state:\n${JSON.stringify({
+      existing_nodes: state.nodes.map(n => ({ id: n.id, type: n.type, label: n.label })),
+      existing_edges: state.edges.map(e => ({ id: e.id, from: e.fromId, to: e.toId, type: e.type, label: e.label }))
+    }, null, 2)}\n\nUser request: ${userMessage}`
+  };
+  const messages = [...aiConversationHistory, contextMessage];
+
+  // Show user bubble + thinking state
+  appendAIMessage('user', escapeHtml(userMessage));
+  const thinkingBody = appendAIMessage('ai', '<span class="ai-thinking">Thinking\u2026</span>');
+  setAILoading(true);
+
+  // Timeout controller
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+
+  let rawText = '';
+  try {
+    const resp = await fetch(AI_ENDPOINT, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: AI_MODEL,
+        max_tokens: AI_MAX_TOKENS,
+        system: AI_SYSTEM_PROMPT,
+        messages,
+      }),
+    });
+    clearTimeout(timer);
+
+    if (myId !== aiGenerationId) return;  // stale — new diagram clicked mid-flight
+
+    if (resp.status === 401) throw Object.assign(new Error('API key rejected. Check your key and try again.'), { aiError: true });
+    if (resp.status === 429) throw Object.assign(new Error('Rate limited \u2014 wait a moment and try again.'), { aiError: true });
+    if (!resp.ok) throw Object.assign(new Error(`API error ${resp.status}. Try again.`), { aiError: true });
+
+    const data = await resp.json();
+    rawText = data.content?.[0]?.text ?? '';
+
+    // Strip markdown fences if present
+    rawText = rawText.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim();
+
+    const payload = JSON.parse(rawText);
+    mergeAIGraph(payload);
+
+    // Update history only on success
+    aiConversationHistory.push({ role: 'user', content: userMessage });
+    aiConversationHistory.push({ role: 'assistant', content: rawText });
+    if (aiConversationHistory.length > AI_HISTORY_MAX) aiConversationHistory.splice(0, 2);
+
+    const chip = `\u2713 ${payload.nodes.length} node${payload.nodes.length !== 1 ? 's' : ''} \u00B7 ${payload.edges.length} edge${payload.edges.length !== 1 ? 's' : ''} added`;
+    thinkingBody.closest('.ai-msg').remove();
+    appendAIMessage('ai', escapeHtml(payload.description || 'Done.'), chip);
+    document.getElementById('ai-textarea').value = '';
+
+  } catch (err) {
+    clearTimeout(timer);
+    if (myId !== aiGenerationId) return;
+
+    let msg;
+    if (err.name === 'AbortError') {
+      msg = 'Request timed out. Try again.';
+    } else if (err.aiError) {
+      msg = err.message;
+    } else if (err instanceof SyntaxError) {
+      msg = 'AI returned an unexpected response. Try rephrasing your prompt.';
+      console.warn('[AI] Non-JSON response:', rawText);
+    } else {
+      msg = 'Network error. Check your connection.';
+    }
+    thinkingBody.innerHTML = `<span class="ai-error">\u26A0 ${escapeHtml(msg)}</span>`;
+    thinkingBody.classList.remove('ai-thinking');
+    // textarea preserved on error so user can retry
+  } finally {
+    if (myId === aiGenerationId) setAILoading(false);
+  }
+}
+
+// ---- escapeHtml helper ----
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ---- validateAIPayload ----
+function validateAIPayload(payload) {
+  if (!Array.isArray(payload.nodes) || !Array.isArray(payload.edges)) {
+    throw new Error('AI returned an unexpected response. Try rephrasing your prompt.');
+  }
+  if (payload.nodes.length === 0 && payload.edges.length === 0) {
+    throw new Error('AI returned an empty graph. Try a more specific description.');
+  }
+  for (const n of payload.nodes) {
+    if (!n.id || !n.type || !n.label) {
+      throw new Error('AI returned malformed nodes. Try again.');
+    }
+  }
+  const VALID_EDGE_TYPES = new Set([
+    'subkind-of', 'instance-of', 'part-of', 'first-order', 'second-order',
+    'state-weak', 'state-strong', 'connect-plain', 'connect-fwd', 'connect-bwd', 'relation-alt',
+  ]);
+  const VALID_NODE_TYPES = new Set([
+    'kind', 'individual', 'relation-first', 'relation-second', 'relation-alt', 'process',
+    'referent', 'junction-xor', 'junction-or', 'junction-and', 'state-weak', 'state-strong',
+    'transition-instant', 'connect-fwd', 'connect-bwd', 'connect-plain', 'container', 'key',
+  ]);
+  for (const n of payload.nodes) {
+    if (!VALID_NODE_TYPES.has(n.type)) {
+      throw new Error(`AI returned unknown node type "${n.type}". Try again.`);
+    }
+  }
+  for (const e of payload.edges) {
+    if (!e.id || !e.from || !e.to || !e.type) {
+      throw new Error('AI returned malformed edges. Try again.');
+    }
+    if (!VALID_EDGE_TYPES.has(e.type)) {
+      throw new Error(`AI returned unknown edge type "${e.type}". Try again.`);
+    }
+  }
+  // Edge references: warn + omit bad ones rather than rejecting entire payload
+  const validIds = new Set([
+    ...payload.nodes.map(n => n.id),
+    ...state.nodes.map(n => n.id)
+  ]);
+  for (const e of payload.edges) {
+    if (!validIds.has(e.from) || !validIds.has(e.to)) {
+      console.warn('[AI] Edge references unknown node, will be omitted:', e);
+    }
+  }
+}
+
+// ---- computeBoundingBox ----
+function computeBoundingBox() {
+  if (!state.nodes.length) return { x: 80, y: 80, w: 0, h: 0 };
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const n of state.nodes) {
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + (n.w ?? 80));
+    maxY = Math.max(maxY, n.y + (n.h ?? 40));
+  }
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+// ---- computeAILayout ----
+function computeAILayout(count) {
+  const positions = [];
+  if (state.nodes.length === 0) {
+    // Initial generation: column-major grid, max 10 columns
+    for (let i = 0; i < count; i++) {
+      positions.push({ x: 80 + (i % 10) * 180, y: 80 + Math.floor(i / 10) * 150 });
+    }
+  } else {
+    // Extension: place right of existing bounding box
+    const bbox = computeBoundingBox();
+    let startX = bbox.x + bbox.w + 120;
+    let startY = bbox.y;
+    if (startX > 1200) { startX = bbox.x; startY = bbox.y + bbox.h + 120; }
+    for (let i = 0; i < count; i++) {
+      positions.push({ x: startX + (i % 4) * 180, y: startY + Math.floor(i / 4) * 150 });
+    }
+  }
+  return positions;
+}
+
+// ---- mergeAIGraph ----
+function mergeAIGraph(payload) {
+  const turnPrefix = 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+  const idMap = {};
+
+  validateAIPayload(payload);  // throws if invalid — saveUndo NOT called yet
+  saveUndo();                  // only reached if payload is valid
+
+  const layout = computeAILayout(payload.nodes.length);
+  aiNewNodeIds = new Set();
+
+  for (let i = 0; i < payload.nodes.length; i++) {
+    const node = payload.nodes[i];
+    const newId = turnPrefix + '-' + node.id;
+    idMap[node.id] = newId;
+    aiNewNodeIds.add(newId);
+    state.nodes.push({ id: newId, type: node.type, label: node.label,
+                       x: layout[i].x, y: layout[i].y });
+  }
+
+  // Hoist validIds before edge loop — O(n+m) not O(n×m)
+  const validIds = new Set(state.nodes.map(n => n.id));
+  for (const edge of payload.edges) {
+    const resolvedFrom = idMap[edge.from] ?? edge.from;
+    const resolvedTo   = idMap[edge.to]   ?? edge.to;
+    if (!validIds.has(resolvedFrom) || !validIds.has(resolvedTo)) continue;
+    state.edges.push({
+      id: turnPrefix + '-e-' + Math.random().toString(36).slice(2, 10),
+      fromId: resolvedFrom,
+      toId:   resolvedTo,
+      type: edge.type,
+      label: edge.label ?? ''
+    });
+  }
+
+  renderAll();
+  persistLocal();
+
+  if (isFirstAIGeneration) {
+    fitToWindow();
+    isFirstAIGeneration = false;
+  }
+
+  // Clear highlight after 2s
+  setTimeout(() => { aiNewNodeIds = new Set(); renderAll(); }, 2000);
+}
+
+// ---- Toolbar AI button ----
+document.getElementById('btn-ai').addEventListener('click', () => {
+  if (aiPanelOpen) closeAIPanel(); else openAIPanel();
+});
+
+// ---- Panel close button ----
+document.getElementById('ai-panel-close').addEventListener('click', closeAIPanel);
+
+// ---- Escape key closes panel when focused inside ----
+document.getElementById('ai-panel').addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeAIPanel(); document.getElementById('btn-ai').focus(); }
+});
+
+// ---- API key input: save on Enter or blur ----
+document.getElementById('ai-key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); saveAIKey(); }
+});
+document.getElementById('ai-key-input').addEventListener('blur', saveAIKey);
+function saveAIKey() {
+  const input = document.getElementById('ai-key-input');
+  const key = input.value.trim();
+  if (key) {
+    localStorage.setItem('quiddity-ai-key', key);
+    input.value = '';
+    syncAIKeySection();
+    syncAITextareaPlaceholder();
+  }
+}
+
+// ---- API key clear button ----
+document.getElementById('ai-key-clear').addEventListener('click', () => {
+  localStorage.removeItem('quiddity-ai-key');
+  syncAIKeySection();
+  syncAITextareaPlaceholder();
+});
+
+// ---- Send button ----
+document.getElementById('ai-send-btn').addEventListener('click', handleAISend);
+
+// ---- Ctrl+Enter in textarea ----
+document.getElementById('ai-textarea').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    handleAISend();
+  }
+});
+
+function handleAISend() {
+  const ta = document.getElementById('ai-textarea');
+  const msg = ta.value.trim();
+  if (!msg) return;
+  callClaudeAPI(msg);
+}
+
+// ============================================================
+// TOOLBOX KEYBOARD: Enter key to place / activate
+// ============================================================
+document.getElementById('toolbox').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const item = e.target.closest('.toolbox-item');
+  if (!item) return;
+  e.preventDefault();
+  const type = item.dataset.type;
+  if (!type) return;
+  // For edge-type tools: same as clicking the item (enter connection mode)
+  if (TOOLBOX_EDGE_TYPES[type]) {
+    cancelToolboxConnect();
+    toolboxConnectStart = { edgeType: TOOLBOX_EDGE_TYPES[type], fromId: null };
+    canvasContainer.style.cursor = 'crosshair';
+    showToolboxConnectHint(true);
+    return;
+  }
+  // For node-type tools: place at canvas center
+  const rect = canvasContainer.getBoundingClientRect();
+  placeToolboxItem(type, rect.left + rect.width / 2, rect.top + rect.height / 2);
+});
+
+// ============================================================
+// PROPERTIES PANEL TOGGLE (tablet)
+// ============================================================
+const propsToggle = document.getElementById('props-toggle');
+if (propsToggle) {
+  propsToggle.addEventListener('click', () => {
+    const panel = document.getElementById('properties');
+    const open = panel.classList.toggle('open');
+    propsToggle.textContent = open ? '\u25B6' : '\u25C4';
+  });
 }
 
 // ============================================================
