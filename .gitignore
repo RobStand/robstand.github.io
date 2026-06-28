@@ -1,2 +1,4 @@
 /.claude
 .gstack/
+/.qa/
+base prompt.md

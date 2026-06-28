@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>document.documentElement.classList.add('js');</script>
+<title>Robert Standefer | Futurist, Technologist, Artist</title>
+<meta name="description" content="Robert Standefer is a futurist, technologist, and artist working on AI transformation at Microsoft — building technology that augments human intellect." />
+<meta property="og:title" content="Robert Standefer | Futurist, Technologist, Artist" />
+<meta property="og:description" content="Futurist, technologist, and artist. AI transformation at Microsoft. Building technology that augments human intellect." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  /* ── Palette B ──────────────────────────────────── */
+  :root{
+    --indigo:#6A30FE;
+    --bg:#27272B;
+    --bg-2:#1c1c1f;
+    --panel:#2f2f34;
+    --green:#6A30FE;
+    --yellow:#FB89CC;
+    --blue:rgba(223,220,223,.72);
+    --sage:rgba(223,220,223,.55);
+    --paper:#DFDCDF;
+    --paper-dim:rgba(223,220,223,.74);
+    --paper-faint:rgba(223,220,223,.5);
+    --line:rgba(223,220,223,.16);
+    --line-strong:rgba(223,220,223,.30);
+
+    --display:'Archivo',system-ui,sans-serif;
+    --sans:'Archivo',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --maxw:1180px;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--paper);
+    font-family:var(--sans);
+    font-size:17px;
+    line-height:1.6;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* film grain so flat color never reads as a template */
+  body::before{
+    content:"";
+    position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--green);color:var(--bg-2)}
+  .mono{font-family:var(--mono)}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 2rem;position:relative;z-index:2}
+
+  /* ── Nav ──────────────────────────────────────────── */
+  nav{position:fixed;top:0;left:0;right:0;z-index:50;
+    backdrop-filter:saturate(150%) blur(10px);
+    background:linear-gradient(to bottom,rgba(39,39,43,.9),rgba(39,39,43,0));
+  }
+  .nav-inner{max-width:var(--maxw);margin:0 auto;padding:1.1rem 2rem;display:flex;justify-content:space-between;align-items:center}
+  .nav-logo{font-family:var(--mono);font-weight:700;font-size:1rem;letter-spacing:.04em}
+  .nav-logo .dot{color:var(--green)}
+  .nav-right{display:flex;gap:1.6rem}
+  .nav-right a{font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-dim);transition:color .2s;position:relative}
+  .nav-right a::after{content:"";position:absolute;left:0;right:100%;bottom:-4px;height:1px;background:var(--green);transition:right .25s ease}
+  .nav-right a:hover{color:var(--paper)}
+  .nav-right a:hover::after{right:0}
+
+  /* ── Hero ─────────────────────────────────────────── */
+  #hero{min-height:100svh;display:flex;align-items:center;position:relative;padding:8rem 0 4rem;overflow:hidden}
+  #grid{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.9}
+  #hero .wrap{width:100%}
+  .hero-tag{display:flex;align-items:center;gap:.7rem;font-size:.8rem;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);margin-bottom:1.6rem}
+  .hero-tag .b{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(251,137,204,.22);animation:pulse 2.4s ease-in-out infinite}
+  .hero-tag .sep{color:var(--sage);opacity:.6}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .name{font-family:var(--display);font-weight:800;line-height:.92;letter-spacing:-.04em;
+    font-size:clamp(2.9rem,10.5vw,8.4rem);text-transform:none}
+  .name .ln{display:block;overflow:hidden}
+  .name .ln span{display:block;transform:translateY(102%);animation:rise .9s cubic-bezier(.16,1,.3,1) forwards}
+  .name .ln:nth-child(2) span{animation-delay:.09s}
+  .name .last{color:var(--green)}
+  .name .ln:first-child span{color:rgba(223,220,223,.5)}
+  @keyframes rise{to{transform:none}}
+
+  .hero-foot{margin-top:3.4rem}
+  .hero-lede{max-width:42ch;font-size:clamp(1.05rem,2.2vw,1.4rem);line-height:1.45;color:var(--paper-dim)}
+  .hero-lede + .hero-lede{margin-top:1.1rem}
+  .hero-lede b{color:var(--paper);font-weight:600}
+
+  /* ── Section scaffolding ─────────────────────────── */
+  section{padding:7rem 0;position:relative;z-index:2}
+  .sec-head{display:flex;align-items:baseline;gap:1.1rem;margin-bottom:3rem;border-top:1px solid var(--line);padding-top:1.4rem}
+  .sec-head .idx{font-family:var(--mono);font-size:.8rem;color:var(--green)}
+  .sec-head h2{font-family:var(--display);font-weight:600;font-size:clamp(1.6rem,4vw,2.6rem);letter-spacing:-.025em;color:#9F4CFD}
+
+  /* Work */
+  .repo{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:1.4rem;
+    padding:1.4rem .4rem;border-top:1px solid var(--line);transition:.2s}
+  .repo:last-of-type{border-bottom:1px solid var(--line)}
+  .repo:hover{padding-left:1.1rem;background:linear-gradient(to right,rgba(106,48,254,.1),transparent)}
+  .rnum{font-family:var(--mono);font-size:.78rem;color:var(--sage)}
+  .repo h4{font-family:var(--display);font-weight:500;font-size:1.2rem;letter-spacing:-.01em;display:flex;align-items:center;gap:.5rem}
+  .repo .arr{color:var(--green);opacity:0;transform:translateX(-6px);transition:.2s}
+  .repo:hover .arr{opacity:1;transform:none}
+  .repo p{color:var(--paper-dim);font-size:.9rem;margin-top:.15rem}
+
+  /* Contact */
+  .biglinks{border-top:1px solid var(--line)}
+  .biglink{display:flex;align-items:baseline;gap:1.6rem;padding:1.8rem .4rem;border-bottom:1px solid var(--line);transition:.2s}
+  .biglink:hover{padding-left:1.2rem;background:linear-gradient(to right,rgba(106,48,254,.12),transparent)}
+  .bl-k{flex:0 0 6.5rem;font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sage)}
+  .bl-v{flex:1;font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,5vw,3rem);letter-spacing:-.02em;line-height:1}
+  .biglink:hover .bl-v{color:var(--green)}
+  .bl-arr{color:var(--green);font-size:1.4rem;opacity:.35;transform:translateX(-6px);transition:.2s}
+  .biglink:hover .bl-arr{opacity:1;transform:none}
+
+  footer{border-top:1px solid var(--line);padding:1.6rem 0 3rem;position:relative;z-index:2}
+  .foot-inner{max-width:var(--maxw);margin:0 auto;padding:0 2rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+  .foot-inner span{font-family:var(--mono);font-size:.7rem;color:var(--paper-faint)}
+
+  /* reveal — progressive enhancement */
+  .js .reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s cubic-bezier(.16,1,.3,1)}
+  .js .reveal.in{opacity:1;transform:none}
+
+  @media (prefers-reduced-motion:reduce){
+    .name .ln span{animation:none;transform:none}
+    .hero-tag .b{animation:none}
+    .js .reveal{opacity:1;transform:none;transition:none}
+  }
+
+  @media (max-width:820px){
+    .nav-right{gap:1.1rem}
+    .repo{gap:.9rem 1.1rem}
+    .bl-k{flex-basis:5rem}
+  }
+  @media (max-width:520px){
+    .nav-right a:not(:last-child){display:none}
+  }
+  @media (max-width:600px){
+    .biglink{flex-direction:column;align-items:flex-start;gap:.5rem;position:relative;padding-right:2.2rem}
+    .bl-k{flex:none}
+    .bl-v{flex:none;font-size:clamp(1.35rem,6.4vw,2rem);overflow-wrap:anywhere}
+    .bl-arr{position:absolute;right:.4rem;top:1.8rem;opacity:.6;transform:none}
+  }
+</style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="nav-inner">
+      <a href="#hero" class="nav-logo">RS<span class="dot">.</span></a>
+      <div class="nav-right">
+        <a href="#work">Creations</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header id="hero">
+    <canvas id="grid" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <p class="hero-tag mono">
+        <span class="b"></span>
+        Futurist <span class="sep">/</span> Technologist <span class="sep">/</span> Artist
+      </p>
+
+      <h1 class="name">
+        <span class="ln"><span>Robert</span></span>
+        <span class="ln"><span class="last">Standefer</span></span>
+      </h1>
+
+      <div class="hero-foot">
+        <p class="hero-lede reveal">
+          I'm a very creative person with a deep background in creating technology that improves the human condition and <b>augments human intellect.</b>
+        </p>
+        <p class="hero-lede reveal">
+          I work on AI transformation at Microsoft, where I help organizations <b>turn AI dreams into realities.</b>
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Work -->
+  <section id="work">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="idx">01</span>
+        <h2>Creations</h2>
+      </div>
+
+      <a class="repo reveal" href="https://aka.ms/AgentPlatformAdvisor" target="_blank" rel="noopener">
+        <span class="rnum">01</span>
+        <span>
+          <h4>Agent Platform Advisor <span class="arr">↗</span></h4>
+          <p>A guide that helps teams navigate Microsoft's agent development ecosystem and pick the right path.</p>
+        </span>
+      </a>
+
+      <a class="repo reveal" href="https://aka.ms/AgentResources" target="_blank" rel="noopener">
+        <span class="rnum">02</span>
+        <span>
+          <h4>Agent Resources <span class="arr">↗</span></h4>
+          <p>A practical, curated collection of resources for building agents, all in one place.</p>
+        </span>
+      </a>
+
+      <a class="repo reveal" href="https://github.com/RobStand/ai-readiness-assessment" target="_blank" rel="noopener">
+        <span class="rnum">03</span>
+        <span>
+          <h4>AI Readiness Assessment <span class="arr">↗</span></h4>
+          <p>A tool to gauge how prepared an organization really is to adopt AI.</p>
+        </span>
+      </a>
+
+      <a class="repo reveal" href="https://github.com/RobStand/ai-business-case-generator" target="_blank" rel="noopener">
+        <span class="rnum">04</span>
+        <span>
+          <h4>AI Business Case Generator <span class="arr">↗</span></h4>
+          <p>Turns a fuzzy AI ambition into a structured, defensible business case.</p>
+        </span>
+      </a>
+
+      <a class="repo reveal" href="https://github.com/RobStand/ai-governance-policy-builder" target="_blank" rel="noopener">
+        <span class="rnum">05</span>
+        <span>
+          <h4>AI Governance Policy Builder <span class="arr">↗</span></h4>
+          <p>Scaffolds responsible-AI governance policies so teams can move fast without losing trust.</p>
+        </span>
+      </a>
+
+      <a class="repo reveal" href="https://github.com/RobStand/ai-pilot-design-wizard" target="_blank" rel="noopener">
+        <span class="rnum">06</span>
+        <span>
+          <h4>AI Pilot Design Wizard <span class="arr">↗</span></h4>
+          <p>Walks you through designing an AI pilot that's actually scoped to succeed.</p>
+        </span>
+      </a>
+
+      <a class="repo reveal" href="https://github.com/RobStand/ai-use-case-prioritization-matrix" target="_blank" rel="noopener">
+        <span class="rnum">07</span>
+        <span>
+          <h4>AI Use Case Prioritization Matrix <span class="arr">↗</span></h4>
+          <p>Ranks AI use cases by impact and effort so the right ideas rise to the top.</p>
+        </span>
+      </a>
+
+      <a class="repo reveal" href="https://github.com/RobStand/quiddity" target="_blank" rel="noopener">
+        <span class="rnum">08</span>
+        <span>
+          <h4>Quiddity <span class="arr">↗</span></h4>
+          <p>An IDEF5 modeling tool for capturing how a system really works.</p>
+        </span>
+      </a>
+
+      <a class="repo reveal" href="https://github.com/RobStand/IDEF5" target="_blank" rel="noopener">
+        <span class="rnum">09</span>
+        <span>
+          <h4>IDEF5 <span class="arr">↗</span></h4>
+          <p>A Visio stencil for IDEF5 ontology modeling.</p>
+        </span>
+      </a>
+
+      <a class="repo reveal" href="https://www.imdb.com/name/nm17880178/" target="_blank" rel="noopener">
+        <span class="rnum">10</span>
+        <span>
+          <h4>IMDb <span class="arr">↗</span></h4>
+          <p>Executive Producer on the film <em>Subotnick</em>.</p>
+        </span>
+      </a>
+
+      <a class="repo reveal" href="https://patents.google.com/?inventor=robert+standefer" target="_blank" rel="noopener">
+        <span class="rnum">11</span>
+        <span>
+          <h4>Patents <span class="arr">↗</span></h4>
+          <p>Inventor on 28 patents covering knowledge engineering and graphs.</p>
+        </span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="idx">02</span>
+        <h2>Contact</h2>
+      </div>
+      <div class="biglinks">
+        <a class="biglink reveal" href="mailto:rob@standefer.com">
+          <span class="bl-k">Email</span>
+          <span class="bl-v">rob@standefer.com</span>
+          <span class="bl-arr">↗</span>
+        </a>
+        <a class="biglink reveal" href="https://www.linkedin.com/in/rstandefer/" target="_blank" rel="noopener">
+          <span class="bl-k">LinkedIn</span>
+          <span class="bl-v">linkedin.com/in/rstandefer</span>
+          <span class="bl-arr">↗</span>
+        </a>
+        <a class="biglink reveal" href="https://github.com/RobStand" target="_blank" rel="noopener">
+          <span class="bl-k">GitHub</span>
+          <span class="bl-v">github.com/RobStand</span>
+          <span class="bl-arr">↗</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-inner">
+      <span>© 2026 Robert Standefer</span>
+      <span>Futurist / Technologist / Artist</span>
+    </div>
+  </footer>
+
+  <script>
+    // ── Reveal on scroll (progressive enhancement) ────
+    const reveals = document.querySelectorAll('.reveal');
+    if('IntersectionObserver' in window){
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach((e,i)=>{
+          if(e.isIntersecting){
+            e.target.style.transitionDelay = Math.min(i*40,160)+'ms';
+            e.target.classList.add('in');
+            io.unobserve(e.target);
+          }
+        });
+      },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+      reveals.forEach(el=>io.observe(el));
+      setTimeout(()=>reveals.forEach(el=>el.classList.add('in')),2500);
+    } else {
+      reveals.forEach(el=>el.classList.add('in'));
+    }
+
+    // ── Node grid (systems-thinking nod) ─────────────
+    (function(){
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const canvas = document.getElementById('grid');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let w,h,dpr,nodes=[],mx=-999,my=-999;
+      function size(){
+        const host = canvas.parentElement.getBoundingClientRect();
+        dpr = Math.min(window.devicePixelRatio||1,2);
+        w = host.width; h = host.height;
+        canvas.width = w*dpr; canvas.height = h*dpr;
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        const count = Math.round((w*h)/22000);
+        nodes = Array.from({length:Math.min(count,90)},()=>({
+          x:Math.random()*w, y:Math.random()*h,
+          vx:(Math.random()-.5)*.22, vy:(Math.random()-.5)*.22
+        }));
+      }
+      size(); window.addEventListener('resize',size);
+      window.addEventListener('mousemove',e=>{
+        const r=canvas.getBoundingClientRect(); mx=e.clientX-r.left; my=e.clientY-r.top;
+      });
+      window.addEventListener('mouseleave',()=>{mx=my=-999});
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+        for(const n of nodes){
+          n.x+=n.vx; n.y+=n.vy;
+          if(n.x<0||n.x>w)n.vx*=-1;
+          if(n.y<0||n.y>h)n.vy*=-1;
+        }
+        for(let i=0;i<nodes.length;i++){
+          const a=nodes[i];
+          for(let j=i+1;j<nodes.length;j++){
+            const b=nodes[j];
+            const d=Math.hypot(a.x-b.x,a.y-b.y);
+            if(d<128){
+              ctx.strokeStyle='rgba(223,220,223,'+(1-d/128)*.16+')';
+              ctx.lineWidth=1;
+              ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+            }
+          }
+          const dm=Math.hypot(a.x-mx,a.y-my);
+          const near=dm<150;
+          ctx.fillStyle=near?'rgba(251,137,204,'+(0.4+(1-dm/150)*.6)+')':'rgba(223,220,223,.38)';
+          ctx.beginPath();ctx.arc(a.x,a.y,near?2.4:1.5,0,Math.PI*2);ctx.fill();
+        }
+        if(!reduce) requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+  </script>
+</body>
+</html>
