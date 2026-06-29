@@ -23,11 +23,11 @@
 - **Scale:** hero clamp(3rem,9vw,6.5rem)/0.94/-0.03em; h2-tag 0.72rem mono uppercase; body 17px/1.6; lead 1.18rem.
 
 ## Color
-- **Approach:** Restrained — one saturated accent, cool neutrals, color is rare and meaningful.
-- **Primary:** `#6A30FE` electric violet — accent only (links, kicker, primary CTA, selection). Never a gradient.
-- **Secondary:** none — drop the pink; the single accent carries the brand.
+- **Approach:** Restrained — one pale accent + one pink highlight, cool neutrals, color is rare and meaningful.
+- **Primary:** `#D8EFFD` ice-blue — accent for links, kicker, section headings, arrows, selection. Soft/decorative, not a saturated pop. Never a gradient.
+- **Secondary:** `#FB89CC` pink — used sparingly for the hero status dot halo and the canvas node-grid hover glow.
 - **Neutrals:** bg `#1C1C1F`, bg-2 `#27272B`, panel `#2F2F34`, paper `#DFDCDF`, paper-dim 74%, paper-faint 50%, line 16%.
-- **Semantic:** success `#07f57b`, warning `#FB89CC`, error `#ff5a5a`, info `#6A30FE`.
+- **Semantic:** success `#07f57b`, warning `#FB89CC`, error `#ff5a5a`, info `#D8EFFD`.
 - **Dark mode:** dark is default; light flips to paper `#f3f1ef` / ink `#1c1c1f`, accent unchanged.
 
 ## Spacing
@@ -36,7 +36,7 @@
 - **Scale:** 2xs(2) xs(4) sm(8) md(16) lg(24) xl(32) 2xl(48) 3xl(64)
 
 ## Layout
-- **Approach:** Creative-editorial — asymmetric, name-as-poster hero, projects as a structured hover list (never a 3-col icon grid).
+- **Approach:** Creative-editorial — asymmetric, name-as-poster hero, projects as a category-grouped tile grid (cool-neutral cards, hover lift + violet border; see Decisions Log 2026-06-29).
 - **Grid:** single column, max content 1080px.
 - **Max content width:** 1080px (gutters 2rem).
 - **Border radius:** sm:5px, md:6px, lg:8px, none on text blocks.
@@ -52,3 +52,5 @@
 | 2026-06-28 | Initial design system created | /design-consultation. Engineered-but-personable to land "smart + creative + want to know him." |
 | 2026-06-28 | Single violet accent #6A30FE, drop pink | One saturated accent on cool neutrals; avoids AI-slop multi-tone gradient. |
 | 2026-06-28 | Archivo + JetBrains Mono | Grotesk + mono = intellect + builder credibility; matches existing stack. |
+| 2026-06-29 | Creations as a tile grid, grouped by category | Deliberate deviation from "never a 3-col icon grid" — user approved. 12 heterogeneous items read better as grouped cards (auto-fill minmax 270px) with mono category labels + counts than as one long list. Cards use bg-2 wells, hover lifts to panel + violet border. |
+| 2026-06-29 | Accent changed from violet `#6A30FE` to ice-blue `#D8EFFD`; pink `#FB89CC` kept as secondary | User preference ("yes, I like it"). Moves away from the single saturated-accent spec to a soft pale-blue primary + sparing pink highlight. Lower contrast, more decorative. |

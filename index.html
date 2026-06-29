@@ -15,11 +15,11 @@
 <style>
   /* ── Palette B ──────────────────────────────────── */
   :root{
-    --indigo:#6A30FE;
+    --indigo:#D8EFFD;
     --bg:#27272B;
     --bg-2:#1c1c1f;
     --panel:#2f2f34;
-    --green:#6A30FE;
+    --green:#D8EFFD;
     --yellow:#FB89CC;
     --blue:rgba(223,220,223,.72);
     --sage:rgba(223,220,223,.55);
@@ -98,23 +98,30 @@
   section{padding:7rem 0;position:relative;z-index:2}
   .sec-head{display:flex;align-items:baseline;gap:1.1rem;margin-bottom:3rem;border-top:1px solid var(--line);padding-top:1.4rem}
   .sec-head .idx{font-family:var(--mono);font-size:.8rem;color:var(--green)}
-  .sec-head h2{font-family:var(--display);font-weight:600;font-size:clamp(1.6rem,4vw,2.6rem);letter-spacing:-.025em;color:#9F4CFD}
+  .sec-head h2{font-family:var(--display);font-weight:600;font-size:clamp(1.6rem,4vw,2.6rem);letter-spacing:-.025em;color:#D8EFFD}
 
   /* Work */
-  .repo{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:1.4rem;
-    padding:1.4rem .4rem;border-top:1px solid var(--line);transition:.2s}
-  .repo:last-of-type{border-bottom:1px solid var(--line)}
-  .repo:hover{padding-left:1.1rem;background:linear-gradient(to right,rgba(106,48,254,.1),transparent)}
-  .rnum{font-family:var(--mono);font-size:.78rem;color:var(--sage)}
-  .repo h4{font-family:var(--display);font-weight:500;font-size:1.2rem;letter-spacing:-.01em;display:flex;align-items:center;gap:.5rem}
-  .repo .arr{color:var(--green);opacity:0;transform:translateX(-6px);transition:.2s}
-  .repo:hover .arr{opacity:1;transform:none}
-  .repo p{color:var(--paper-dim);font-size:.9rem;margin-top:.15rem}
+  .repo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.9rem}
+  .tile{display:flex;flex-direction:column;gap:.5rem;min-height:9.5rem;
+    padding:1.25rem 1.3rem 1.35rem;background:var(--bg-2);border:1px solid var(--line);
+    border-radius:8px;transition:transform .2s ease,border-color .2s ease,background .2s ease}
+  .tile:hover{transform:translateY(-3px);border-color:rgba(216,239,253,.55);background:var(--panel)}
+  .tile-top{display:flex;align-items:center;justify-content:space-between}
+  .rnum{font-family:var(--mono);font-size:.74rem;color:var(--sage)}
+  .tile .arr{color:var(--green);font-size:1.05rem;opacity:0;transform:translate(-4px,2px);transition:.2s}
+  .tile:hover .arr{opacity:1;transform:none}
+  .tile h4{font-family:var(--display);font-weight:500;font-size:1.12rem;letter-spacing:-.01em;line-height:1.2}
+  .tile p{color:var(--paper-dim);font-size:.88rem;line-height:1.45}
+  .repo-group{display:flex;justify-content:space-between;align-items:baseline;
+    padding:2.6rem .25rem .9rem;font-family:var(--mono);font-size:.72rem;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--sage)}
+  .repo-group:first-of-type{padding-top:.4rem}
+  .repo-group .rg-count{color:var(--paper-faint)}
 
   /* Contact */
   .biglinks{border-top:1px solid var(--line)}
   .biglink{display:flex;align-items:baseline;gap:1.6rem;padding:1.8rem .4rem;border-bottom:1px solid var(--line);transition:.2s}
-  .biglink:hover{padding-left:1.2rem;background:linear-gradient(to right,rgba(106,48,254,.12),transparent)}
+  .biglink:hover{padding-left:1.2rem;background:linear-gradient(to right,rgba(216,239,253,.12),transparent)}
   .bl-k{flex:0 0 6.5rem;font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sage)}
   .bl-v{flex:1;font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,5vw,3rem);letter-spacing:-.02em;line-height:1}
   .biglink:hover .bl-v{color:var(--green)}
@@ -137,7 +144,6 @@
 
   @media (max-width:820px){
     .nav-right{gap:1.1rem}
-    .repo{gap:.9rem 1.1rem}
     .bl-k{flex-basis:5rem}
   }
   @media (max-width:520px){
@@ -194,104 +200,81 @@
     <div class="wrap">
       <div class="sec-head reveal">
         <span class="idx">01</span>
-        <h2>Creations</h2>
+        <h2>Creative output</h2>
       </div>
 
-      <a class="repo reveal" href="https://aka.ms/AgentPlatformAdvisor" target="_blank" rel="noopener">
-        <span class="rnum">01</span>
-        <span>
-          <h4>Agent Platform Advisor <span class="arr">↗</span></h4>
+      <div class="repo-group reveal"><span>AI advisory tools</span><span class="rg-count">07</span></div>
+      <div class="repo-grid">
+        <a class="tile reveal" href="https://aka.ms/AgentPlatformAdvisor" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">01</span><span class="arr">↗</span></div>
+          <h4>Agent Platform Advisor</h4>
           <p>A guide that helps teams navigate Microsoft's agent development ecosystem and pick the right path.</p>
-        </span>
-      </a>
-
-      <a class="repo reveal" href="https://aka.ms/AgentResources" target="_blank" rel="noopener">
-        <span class="rnum">02</span>
-        <span>
-          <h4>Agent Resources <span class="arr">↗</span></h4>
+        </a>
+        <a class="tile reveal" href="https://aka.ms/AgentResources" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">02</span><span class="arr">↗</span></div>
+          <h4>Agent Resources</h4>
           <p>A practical, curated collection of resources for building agents, all in one place.</p>
-        </span>
-      </a>
-
-      <a class="repo reveal" href="https://github.com/RobStand/ai-readiness-assessment" target="_blank" rel="noopener">
-        <span class="rnum">03</span>
-        <span>
-          <h4>AI Readiness Assessment <span class="arr">↗</span></h4>
+        </a>
+        <a class="tile reveal" href="https://github.com/RobStand/ai-readiness-assessment" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">03</span><span class="arr">↗</span></div>
+          <h4>AI Readiness Assessment</h4>
           <p>A tool to gauge how prepared an organization really is to adopt AI.</p>
-        </span>
-      </a>
-
-      <a class="repo reveal" href="https://github.com/RobStand/ai-business-case-generator" target="_blank" rel="noopener">
-        <span class="rnum">04</span>
-        <span>
-          <h4>AI Business Case Generator <span class="arr">↗</span></h4>
+        </a>
+        <a class="tile reveal" href="https://github.com/RobStand/ai-business-case-generator" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">04</span><span class="arr">↗</span></div>
+          <h4>AI Business Case Generator</h4>
           <p>Turns a fuzzy AI ambition into a structured, defensible business case.</p>
-        </span>
-      </a>
-
-      <a class="repo reveal" href="https://github.com/RobStand/ai-governance-policy-builder" target="_blank" rel="noopener">
-        <span class="rnum">05</span>
-        <span>
-          <h4>AI Governance Policy Builder <span class="arr">↗</span></h4>
+        </a>
+        <a class="tile reveal" href="https://github.com/RobStand/ai-governance-policy-builder" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">05</span><span class="arr">↗</span></div>
+          <h4>AI Governance Policy Builder</h4>
           <p>Scaffolds responsible-AI governance policies so teams can move fast without losing trust.</p>
-        </span>
-      </a>
-
-      <a class="repo reveal" href="https://github.com/RobStand/ai-pilot-design-wizard" target="_blank" rel="noopener">
-        <span class="rnum">06</span>
-        <span>
-          <h4>AI Pilot Design Wizard <span class="arr">↗</span></h4>
+        </a>
+        <a class="tile reveal" href="https://github.com/RobStand/ai-pilot-design-wizard" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">06</span><span class="arr">↗</span></div>
+          <h4>AI Pilot Design Wizard</h4>
           <p>Walks you through designing an AI pilot that's actually scoped to succeed.</p>
-        </span>
-      </a>
-
-      <a class="repo reveal" href="https://github.com/RobStand/ai-use-case-prioritization-matrix" target="_blank" rel="noopener">
-        <span class="rnum">07</span>
-        <span>
-          <h4>AI Use Case Prioritization Matrix <span class="arr">↗</span></h4>
+        </a>
+        <a class="tile reveal" href="https://github.com/RobStand/ai-use-case-prioritization-matrix" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">07</span><span class="arr">↗</span></div>
+          <h4>AI Use Case Prioritization Matrix</h4>
           <p>Ranks AI use cases by impact and effort so the right ideas rise to the top.</p>
-        </span>
-      </a>
+        </a>
+      </div>
 
-      <a class="repo reveal" href="https://github.com/RobStand/quiddity" target="_blank" rel="noopener">
-        <span class="rnum">08</span>
-        <span>
-          <h4>Quiddity <span class="arr">↗</span></h4>
-          <p>An IDEF5 modeling tool for capturing how a system really works.</p>
-        </span>
-      </a>
+      <div class="repo-group reveal"><span>Modeling tools</span><span class="rg-count">02</span></div>
+      <div class="repo-grid">
+        <a class="tile reveal" href="https://github.com/RobStand/quiddity" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">08</span><span class="arr">↗</span></div>
+          <h4>Quiddity</h4>
+          <p>An ontology modeling tool for creating formal models of what exists in a domain, how things relate, and why those distinctions matter.
+.</p>
+        </a>
+        <a class="tile reveal" href="https://github.com/RobStand/IDEF5" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">09</span><span class="arr">↗</span></div>
+          <h4>IDEF5 Stencil</h4>
+          <p>A Visio stencil that adds support for IDEF5 ontology modeling.</p>
+        </a>
+      </div>
 
-      <a class="repo reveal" href="https://github.com/RobStand/IDEF5" target="_blank" rel="noopener">
-        <span class="rnum">09</span>
-        <span>
-          <h4>IDEF5 <span class="arr">↗</span></h4>
-          <p>A Visio stencil for IDEF5 ontology modeling.</p>
-        </span>
-      </a>
-
-      <a class="repo reveal" href="https://www.imdb.com/name/nm17880178/" target="_blank" rel="noopener">
-        <span class="rnum">10</span>
-        <span>
-          <h4>IMDb <span class="arr">↗</span></h4>
+      <div class="repo-group reveal"><span>Beyond software</span><span class="rg-count">03</span></div>
+      <div class="repo-grid">
+        <a class="tile reveal" href="https://www.imdb.com/name/nm17880178/" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">10</span><span class="arr">↗</span></div>
+          <h4>IMDb</h4>
           <p>Executive Producer on the film <em>Subotnick</em>.</p>
-        </span>
-      </a>
-
-      <a class="repo reveal" href="https://patents.google.com/?inventor=robert+standefer" target="_blank" rel="noopener">
-        <span class="rnum">11</span>
-        <span>
-          <h4>Patents <span class="arr">↗</span></h4>
+        </a>
+        <a class="tile reveal" href="https://patents.google.com/?inventor=robert+standefer" target="_blank" rel="noopener">
+          <div class="tile-top"><span class="rnum">11</span><span class="arr">↗</span></div>
+          <h4>Patents</h4>
           <p>Inventor on 28 patents covering knowledge engineering and graphs.</p>
-        </span>
-      </a>
-
-      <a class="repo reveal" href="agent-platform-comic/index.html">
-        <span class="rnum">12</span>
-        <span>
-          <h4>Agent Platform Comic <span class="arr">↗</span></h4>
+        </a>
+        <a class="tile reveal" href="agent-platform-comic/index.html">
+          <div class="tile-top"><span class="rnum">12</span><span class="arr">↗</span></div>
+          <h4>Agent Platform Comic</h4>
           <p>A comic that helps make sense of the Microsoft agent platforms, created in Comic Chat for the Power Platform Community Conference.</p>
-        </span>
-      </a>
+        </a>
+      </div>
     </div>
   </section>
 
