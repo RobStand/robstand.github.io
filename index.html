@@ -62,12 +62,12 @@
     backdrop-filter:saturate(150%) blur(10px);
     background:linear-gradient(to bottom,rgba(39,39,43,.9),rgba(39,39,43,0));
   }
-  .nav-inner{max-width:var(--maxw);margin:0 auto;padding:1.1rem 2rem;display:flex;justify-content:space-between;align-items:center}
+  .nav-inner{max-width:var(--maxw);margin:0 auto;padding:.4rem 2rem;display:flex;justify-content:space-between;align-items:center}
   .nav-logo{font-family:var(--mono);font-weight:700;font-size:1rem;letter-spacing:.04em}
   .nav-logo .dot{color:var(--green)}
   .nav-right{display:flex;gap:1.6rem}
-  .nav-right a{font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-dim);transition:color .2s;position:relative}
-  .nav-right a::after{content:"";position:absolute;left:0;right:100%;bottom:-4px;height:1px;background:var(--green);transition:right .25s ease}
+  .nav-right a{font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-dim);transition:color .2s;position:relative;display:inline-flex;align-items:center;min-height:44px}
+  .nav-right a::after{content:"";position:absolute;left:0;right:100%;bottom:11px;height:1px;background:var(--green);transition:right .25s ease}
   .nav-right a:hover{color:var(--paper)}
   .nav-right a:hover::after{right:0}
 
