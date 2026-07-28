@@ -11,15 +11,32 @@ push. The gallery at /photos.html reads manifest.json to know what to show.
 
 import json
 import os
+import re
 
 EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif"}
+EXCLUDED = {
+    "ferrari-412-2.jpeg",
+    "ferrari-412-4.jpeg",
+}
 
 here = os.path.dirname(os.path.abspath(__file__))
 
+
+def natural_key(name):
+    return [
+        int(part) if part.isdigit() else part.lower()
+        for part in re.split(r"(\d+)", name)
+    ]
+
+
 photos = sorted(
-    name
-    for name in os.listdir(here)
-    if os.path.splitext(name)[1].lower() in EXTS
+    (
+        name
+        for name in os.listdir(here)
+        if os.path.splitext(name)[1].lower() in EXTS
+        and name.lower() not in EXCLUDED
+    ),
+    key=natural_key,
 )
 
 out = os.path.join(here, "manifest.json")
